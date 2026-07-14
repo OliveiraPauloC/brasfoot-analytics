@@ -13,9 +13,11 @@ interface JogoStore {
   rodadaSendoSimulada: number;
   timeUsuarioId: string | null;
   nomeTecnico: string;
+  titularesManuaisIds: string[];
   
   carregarDadosIniciais: () => Promise<void>;
   escolherClube: (timeId: string, nome: string) => void;
+  alternarEscalacao: (jogadorId: string) => void;
   dispararSimulacao: () => void;
   resetarCampeonato: () => void;
 }
@@ -34,6 +36,7 @@ export const useJogoStore = create<JogoStore>()(
       rodadaSendoSimulada: 1,
       timeUsuarioId: null,
       nomeTecnico: '',
+      titularesManuaisIds: [],
 
       carregarDadosIniciais: async () => {
         if (get().times.length > 0) return;
@@ -42,23 +45,50 @@ export const useJogoStore = create<JogoStore>()(
           const dados: Time[] = await resposta.json();
           set({ times: dados });
         } catch (erro) {
-          console.error("Falha ao consumir o JSON de elencos reais:", erro);
+          console.error("Falha ao consumir o JSON:", erro);
         }
       },
 
-      escolherClube: (timeId, nome) => set({
-        timeUsuarioId: timeId,
-        nomeTecnico: nome,
-        rodada: 1,
-        historicoRodadas: [],
-        partidasEmAndamento: [],
-        minutoAtual: 0,
-        estaSimulando: false
+      escolherClube: (timeId, nome) => {
+        const estado = get();
+        const meuTime = estado.times.find(t => t.id === timeId);
+
+        const titularesIniciaisIds = meuTime ? obterTitulares(meuTime.jogadores).map(j => j.id) : [];
+
+        set({
+          timeUsuarioId: timeId,
+          nomeTecnico: nome,
+          titularesManuaisIds: titularesIniciaisIds,
+          rodada: 1,
+          historicoRodadas: [],
+          partidasEmAndamento: [],
+          minutoAtual: 0,
+          estaSimulando: false
+        });
+      },
+
+      alternarEscalacao: (jogadorId) => set((state) => {
+        const jaEhTitular = state.titularesManuaisIds.includes(jogadorId);
+        
+        if (jaEhTitular) {
+          return { titularesManuaisIds: state.titularesManuaisIds.filter(id => id !== jogadorId) };
+        } else {
+          if (state.titularesManuaisIds.length >= 11) {
+            alert("Você já tem 11 titulares escalados! Tire alguém do time primeiro.");
+            return {};
+          }
+          return { titularesManuaisIds: [...state.titularesManuaisIds, jogadorId] };
+        }
       }),
 
       dispararSimulacao: () => {
-        const { rodada, times, estaSimulando } = get();
+        const { rodada, times, estaSimulando, timeUsuarioId, titularesManuaisIds } = get();
         if (rodada > 14 || estaSimulando || times.length === 0) return;
+
+        if (titularesManuaisIds.length < 11) {
+          alert(`Você precisa escalar exatamente 11 titulares antes de jogar! Atualmente tem ${titularesManuaisIds.length}. Vá na aba Elencos.`);
+          return;
+        }
 
         if (tictacInterval) clearInterval(tictacInterval);
 
@@ -72,19 +102,14 @@ export const useJogoStore = create<JogoStore>()(
         const numTimes = timesComDescanso.length;
         const ehSegundoTurno = rodada > 7;
         const r = ehSegundoTurno ? (rodada - 8) : (rodada - 1);
-
         const confrontos: [number, number][] = [];
 
         for (let i = 0; i < numTimes / 2; i++) {
           const casaBase = (r + i) % (numTimes - 1);
           let foraBase = (numTimes - 1 - i + r) % (numTimes - 1);
           if (i === 0) foraBase = numTimes - 1;
-
-          if (ehSegundoTurno) {
-            confrontos.push([foraBase, casaBase]);
-          } else {
-            confrontos.push([casaBase, foraBase]);
-          }
+          if (ehSegundoTurno) confrontos.push([foraBase, casaBase]);
+          else confrontos.push([casaBase, foraBase]);
         }
 
         const resultados = confrontos.map(([idxCasa, idxFora]) => 
@@ -107,7 +132,6 @@ export const useJogoStore = create<JogoStore>()(
             
             const estadoAtual = get();
             const jaExiste = estadoAtual.historicoRodadas.some(hr => hr.numeroRodada === estadoAtual.rodada);
-            
             if (jaExiste) {
               set({ estaSimulando: false, minutoAtual: 0 });
               return;
@@ -122,23 +146,22 @@ export const useJogoStore = create<JogoStore>()(
               tCasa.golsPro += res.golsCasa; tCasa.golsContra += res.golsFora;
               tFora.golsPro += res.golsFora; tFora.golsContra += res.golsCasa;
 
-              const titularesCasaIds = obterTitulares(tCasa.jogadores).map(j => j.id);
-              const titularesForaIds = obterTitulares(tFora.jogadores).map(j => j.id);
+              const tCasaIds = tCasa.id === timeUsuarioId 
+                ? estadoAtual.titularesManuaisIds 
+                : obterTitulares(tCasa.jogadores).map(j => j.id);
+
+              const tForaIds = tFora.id === timeUsuarioId 
+                ? estadoAtual.titularesManuaisIds 
+                : obterTitulares(tFora.jogadores).map(j => j.id);
 
               tCasa.jogadores.forEach(j => {
-                if (titularesCasaIds.includes(j.id)) {
-                  j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 7));
-                } else {
-                  j.energia = Math.min(100, j.energia + 10);
-                }
+                if (tCasaIds.includes(j.id)) j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 7));
+                else j.energia = Math.min(100, j.energia + 10);
               });
 
               tFora.jogadores.forEach(j => {
-                if (titularesForaIds.includes(j.id)) {
-                  j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 7));
-                } else {
-                  j.energia = Math.min(100, j.energia + 10);
-                }
+                if (tForaIds.includes(j.id)) j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 7));
+                else j.energia = Math.min(100, j.energia + 10);
               });
 
               if (res.golsCasa > res.golsFora) {
@@ -170,7 +193,7 @@ export const useJogoStore = create<JogoStore>()(
 
       resetarCampeonato: async () => {
         if (tictacInterval) clearInterval(tictacInterval);
-        set({ times: [], rodada: 1, historicoRodadas: [], partidasEmAndamento: [], minutoAtual: 0, estaSimulando: false, timeUsuarioId: null, nomeTecnico: '' });
+        set({ times: [], rodada: 1, historicoRodadas: [], partidasEmAndamento: [], minutoAtual: 0, estaSimulando: false, timeUsuarioId: null, nomeTecnico: '', titularesManuaisIds: [] });
         try {
           const resposta = await fetch('/dadosIniciais.json');
           const dados = await resposta.json();
@@ -187,7 +210,8 @@ export const useJogoStore = create<JogoStore>()(
         rodada: state.rodada,
         historicoRodadas: state.historicoRodadas,
         timeUsuarioId: state.timeUsuarioId,
-        nomeTecnico: state.nomeTecnico
+        nomeTecnico: state.nomeTecnico,
+        titularesManuaisIds: state.titularesManuaisIds
       })
     }
   )
