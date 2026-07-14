@@ -38,7 +38,12 @@ export default function App() {
 
     return Object.entries(contagemGols)
       .map(([nome, dados]) => ({ nome, ...dados }))
-      .sort((a, b) => b.gols - a.gols);
+      .sort((a, b) => {
+        if (b.gols !== a.gols) {
+          return b.gols - a.gols;
+        }
+        return a.time.localeCompare(b.time);
+      });
   };
 
   const listaArtilheiros = obterArtilharia();
