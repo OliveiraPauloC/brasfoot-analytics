@@ -16,3 +16,23 @@ export interface Time {
   golsContra: number;
   jogadores: Jogador[];
 }
+
+export interface Gol {
+  autor: string;
+  minuto: number;
+  timeNome: string;
+}
+
+export interface PartidaSimulada {
+  id: string;
+  timeCasaNome: string;
+  timeForaNome: string;
+  golsCasa: number;
+  golsFora: number;
+  golsDetalhes: Gol[];
+}
+
+export interface RodadaSimulada {
+  numeroRodada: number;
+  partidas: PartidaSimulada[];
+}
