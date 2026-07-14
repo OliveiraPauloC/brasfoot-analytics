@@ -119,12 +119,6 @@ export const useJogoStore = create<JogoStore>()(
               }
             });
 
-            novosTimes.sort((a, b) => {
-              const saldoA = a.golsPro - a.golsContra;
-              const saldoB = b.golsPro - b.golsContra;
-              return b.pontos - a.pontos || saldoB - saldoA || b.golsPro - a.golsPro;
-            });
-
             const novaRodadaRecord: RodadaSimulada = {
               numeroRodada: estadoAtual.rodada,
               partidas: estadoAtual.partidasEmAndamento
