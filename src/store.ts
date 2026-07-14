@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { type Time, type RodadaSimulada, type PartidaSimulada, type Jogador } from './types';
-import { simularPartida } from './motorSimulacao';
+import { simularPartida, obterTitulares } from './motorSimulacao';
 
-// Função utilitária sênior para gerar elencos de 22 jogadores dinamicamente com IA/Lógica de Negócio
 const gerarElencoFicticio = (prefixoId: string, forcaMedia: number): Jogador[] => {
   const posicoes: ('GOL' | 'DEF' | 'MEI' | 'ATA')[] = [
     'GOL', 'GOL',
@@ -125,8 +124,24 @@ export const useJogoStore = create<JogoStore>()(
               tCasa.golsPro += res.golsCasa; tCasa.golsContra += res.golsFora;
               tFora.golsPro += res.golsFora; tFora.golsContra += res.golsCasa;
 
-              tCasa.jogadores.forEach(j => j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 5)));
-              tFora.jogadores.forEach(j => j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 5)));
+              const titularesCasaIds = obterTitulares(tCasa.jogadores).map(j => j.id);
+              const titularesForaIds = obterTitulares(tFora.jogadores).map(j => j.id);
+
+              tCasa.jogadores.forEach(j => {
+                if (titularesCasaIds.includes(j.id)) {
+                  j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 7));
+                } else {
+                  j.energia = Math.min(100, j.energia + 10);
+                }
+              });
+
+              tFora.jogadores.forEach(j => {
+                if (titularesForaIds.includes(j.id)) {
+                  j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 7));
+                } else {
+                  j.energia = Math.min(100, j.energia + 10);
+                }
+              });
 
               if (res.golsCasa > res.golsFora) {
                 tCasa.pontos += 3; tCasa.vitorias += 1; tFora.derrotas += 1;
