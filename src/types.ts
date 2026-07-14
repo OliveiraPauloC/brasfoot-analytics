@@ -3,6 +3,9 @@ export interface Jogador {
   nome: string;
   posicao: 'GOL' | 'DEF' | 'MEI' | 'ATA';
   forca: number;
+  idade: number;
+  energia: number; 
+  salario: number; 
 }
 
 export interface Time {
