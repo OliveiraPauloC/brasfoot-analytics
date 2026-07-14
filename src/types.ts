@@ -6,6 +6,11 @@ export interface Jogador {
   idade: number;
   energia: number; 
   salario: number; 
+  tec: number;
+  fis: number; 
+  fin: number; 
+  def: number; 
+  ref: number;
 }
 
 export interface Time {
