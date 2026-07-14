@@ -1,8 +1,29 @@
 import { type Time, type PartidaSimulada, type Gol, type Jogador } from './types';
 
+export function calcularForcaJogador(j: Jogador): number {
+  let forcaBase = 0;
+  
+  switch (j.posicao) {
+    case 'GOL':
+      forcaBase = (j.ref * 0.7) + (j.fis * 0.2) + (j.tec * 0.1);
+      break;
+    case 'DEF':
+      forcaBase = (j.def * 0.7) + (j.fis * 0.2) + (j.tec * 0.1);
+      break;
+    case 'MEI':
+      forcaBase = (j.tec * 0.6) + (j.fis * 0.2) + (j.def * 0.1) + (j.fin * 0.1);
+      break;
+    case 'ATA':
+      forcaBase = (j.fin * 0.6) + (j.fis * 0.3) + (j.tec * 0.1);
+      break;
+  }
+
+  return forcaBase * (j.energia / 100);
+}
+
 export function obterTitulares(jogadores: Jogador[]): Jogador[] {
   const ordenarPorMelhor = (lista: Jogador[]) => 
-    [...lista].sort((a, b) => (b.forca * (b.energia / 100)) - (a.forca * (a.energia / 100)));
+    [...lista].sort((a, b) => calcularForcaJogador(b) - calcularForcaJogador(a));
 
   const goleiros = ordenarPorMelhor(jogadores.filter(j => j.posicao === 'GOL'));
   const defesas = ordenarPorMelhor(jogadores.filter(j => j.posicao === 'DEF'));
@@ -21,13 +42,8 @@ export function simularPartida(timeCasa: Time, timeFora: Time, rodadaAtual: numb
   const titularesCasa = obterTitulares(timeCasa.jogadores);
   const titularesFora = obterTitulares(timeFora.jogadores);
 
-  const calcularForcaTitulares = (titulares: Jogador[]) => {
-    const soma = titulares.reduce((acc, j) => acc + (j.forca * (j.energia / 100)), 0);
-    return soma / titulares.length;
-  };
-
-  const forcaCasa = calcularForcaTitulares(titularesCasa);
-  const forcaFora = calcularForcaTitulares(titularesFora);
+  const forcaCasa = titularesCasa.reduce((acc, j) => acc + calcularForcaJogador(j), 0) / titularesCasa.length;
+  const forcaFora = titularesFora.reduce((acc, j) => acc + calcularForcaJogador(j), 0) / titularesFora.length;
 
   const pesoCasa = forcaCasa + 3;
   const pesoFora = forcaFora;
