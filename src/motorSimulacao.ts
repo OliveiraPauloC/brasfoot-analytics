@@ -3,32 +3,46 @@ import { type Time, type PartidaSimulada, type Gol, type Jogador } from './types
 export function calcularForcaJogador(j: Jogador): number {
   let forcaBase = 0;
   switch (j.posicao) {
-    case 'GOL': 
-      forcaBase = (j.ref * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); 
-      break;
-    case 'DEF': 
-      forcaBase = (j.def * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); 
-      break;
-    case 'MEI': 
-      forcaBase = (j.tec * 0.6) + (j.fis * 0.2) + (j.def * 0.1) + (j.fin * 0.1); 
-      break;
-    case 'ATA': 
-      forcaBase = (j.fin * 0.6) + (j.fis * 0.3) + (j.tec * 0.1); 
-      break;
+    case 'GOL': forcaBase = (j.ref * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); break;
+    case 'DEF': forcaBase = (j.def * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); break;
+    case 'MEI': forcaBase = (j.tec * 0.6) + (j.fis * 0.2) + (j.def * 0.1) + (j.fin * 0.1); break;
+    case 'ATA': forcaBase = (j.fin * 0.6) + (j.fis * 0.3) + (j.tec * 0.1); break;
   }
 
-  return forcaBase * (j.energia / 100);
+  if (j.energia >= 85) {
+    return forcaBase;
+  }
+
+  const fatorDesgaste = 1 - ((85 - j.energia) * 0.008); 
+  return forcaBase * Math.max(0.6, fatorDesgaste);
 }
 
 export function obterTitulares(jogadores: Jogador[]): Jogador[] {
-  const ordenarPorMelhor = (lista: Jogador[]) => 
-    [...lista].sort((a, b) => calcularForcaJogador(b) - calcularForcaJogador(a));
+  const goleiros = jogadores.filter(j => j.posicao === 'GOL');
+  const defesas = jogadores.filter(j => j.posicao === 'DEF');
+  const meias = jogadores.filter(j => j.posicao === 'MEI');
+  const ataques = jogadores.filter(j => j.posicao === 'ATA');
+
+  const escalarPorQualidadeEletiva = (lista: Jogador[], vagas: number) => {
+    return [...lista].sort((a, b) => {
+      const aExausto = a.energia < 70;
+      const bExausto = b.energia < 70;
+
+      if (!aExausto && bExausto) return -1;
+      if (aExausto && !bExausto) return 1;
+
+      const forcaNominalA = calcularForcaJogador({ ...a, energia: 100 });
+      const forcaNominalB = calcularForcaJogador({ ...b, energia: 100 });
+
+      return forcaNominalB - forcaNominalA;
+    }).slice(0, vagas);
+  };
 
   return [
-    ...ordenarPorMelhor(jogadores.filter(j => j.posicao === 'GOL')).slice(0, 1),
-    ...ordenarPorMelhor(jogadores.filter(j => j.posicao === 'DEF')).slice(0, 4),
-    ...ordenarPorMelhor(jogadores.filter(j => j.posicao === 'MEI')).slice(0, 4),
-    ...ordenarPorMelhor(jogadores.filter(j => j.posicao === 'ATA')).slice(0, 2)
+    ...escalarPorQualidadeEletiva(goleiros, 1),
+    ...escalarPorQualidadeEletiva(defesas, 4),
+    ...escalarPorQualidadeEletiva(meias, 4),
+    ...escalarPorQualidadeEletiva(ataques, 2)
   ];
 }
 
@@ -78,14 +92,14 @@ export function simularPartida(timeCasa: Time, timeFora: Time, rodadaAtual: numb
   for (let momento = 1; momento <= 6; momento++) {
     const baseMinuto = (momento - 1) * 15 + 1;
 
-    const chanceCasa = 0.06 + ((criacaoCasa + ataqueCasa) - defesaFora) / 160;
+    const chanceCasa = 0.06 + ((criacaoCasa + ataqueCasa) - defesaFora) / 110;
     if (Math.random() < Math.max(0.02, Math.min(0.35, chanceCasa))) {
       golsCasa++;
       const minutoCasa = Math.floor(Math.random() * 14) + baseMinuto;
       golsDetalhes.push({ autor: escolherAutorEmCampo(tCasa), minuto: minutoCasa, timeNome: timeCasa.nome });
     }
 
-    const chanceFora = 0.04 + ((criacaoFora + ataqueFora) - defesaCasa) / 160;
+    const chanceFora = 0.04 + ((criacaoFora + ataqueFora) - defesaCasa) / 110;
     if (Math.random() < Math.max(0.01, Math.min(0.30, chanceFora))) {
       golsFora++;
       let minutoFora = Math.floor(Math.random() * 14) + baseMinuto;
