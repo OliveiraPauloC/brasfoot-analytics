@@ -43,10 +43,10 @@ const escolherAutorEmCampo = (titulares: Jogador[]): string => {
 
   let numeroSorteado = Math.random() * somaFinalizacao;
 
-  for (const jogador of listaSorteio) {
-    const pesoAtual = jogador.posicao === 'DEF' ? (jogador.fin / 3) : jogador.fin;
+  for (const Ovalor of listaSorteio) {
+    const pesoAtual = Ovalor.posicao === 'DEF' ? (Ovalor.fin / 3) : Ovalor.fin;
     numeroSorteado -= pesoAtual;
-    if (numeroSorteado <= 0) return jogador.nome;
+    if (numeroSorteado <= 0) return Ovalor.nome;
   }
 
   return listaSorteio[0].nome;
@@ -76,18 +76,26 @@ export function simularPartida(timeCasa: Time, timeFora: Time, rodadaAtual: numb
   let golsFora = 0;
 
   for (let momento = 1; momento <= 6; momento++) {
-    const minutoDoEvento = Math.floor(Math.random() * 14) + (momento - 1) * 15 + 1;
+    const baseMinuto = (momento - 1) * 15 + 1;
 
     const chanceCasa = 0.06 + ((criacaoCasa + ataqueCasa) - defesaFora) / 160;
     if (Math.random() < Math.max(0.02, Math.min(0.35, chanceCasa))) {
       golsCasa++;
-      golsDetalhes.push({ autor: escolherAutorEmCampo(tCasa), minuto: minutoDoEvento, timeNome: timeCasa.nome });
+      const minutoCasa = Math.floor(Math.random() * 14) + baseMinuto;
+      golsDetalhes.push({ autor: escolherAutorEmCampo(tCasa), minuto: minutoCasa, timeNome: timeCasa.nome });
     }
 
     const chanceFora = 0.04 + ((criacaoFora + ataqueFora) - defesaCasa) / 160;
     if (Math.random() < Math.max(0.01, Math.min(0.30, chanceFora))) {
       golsFora++;
-      golsDetalhes.push({ autor: escolherAutorEmCampo(tFora), minuto: minutoDoEvento, timeNome: timeFora.nome });
+      let minutoFora = Math.floor(Math.random() * 14) + baseMinuto;
+
+      const minutoDuplicado = golsDetalhes.some(g => g.minuto === minutoFora);
+      if (minutoDuplicado) {
+        minutoFora = Math.min(90, minutoFora + 1);
+      }
+
+      golsDetalhes.push({ autor: escolherAutorEmCampo(tFora), minuto: minutoFora, timeNome: timeFora.nome });
     }
   }
 
