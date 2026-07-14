@@ -3,11 +3,20 @@ import { type Time, type PartidaSimulada, type Gol, type Jogador } from './types
 export function calcularForcaJogador(j: Jogador): number {
   let forcaBase = 0;
   switch (j.posicao) {
-    case 'GOL': forcaBase = (j.ref * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); break;
-    case 'DEF': forcaBase = (j.def * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); break;
-    case 'MEI': forcaBase = (j.tec * 0.6) + (j.fis * 0.2) + (j.def * 0.1) + (j.fin * 0.1); break;
-    case 'ATA': forcaBase = (j.fin * 0.6) + (j.fis * 0.3) + (j.tec * 0.1); break;
+    case 'GOL': 
+      forcaBase = (j.ref * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); 
+      break;
+    case 'DEF': 
+      forcaBase = (j.def * 0.7) + (j.fis * 0.2) + (j.tec * 0.1); 
+      break;
+    case 'MEI': 
+      forcaBase = (j.tec * 0.6) + (j.fis * 0.2) + (j.def * 0.1) + (j.fin * 0.1); 
+      break;
+    case 'ATA': 
+      forcaBase = (j.fin * 0.6) + (j.fis * 0.3) + (j.tec * 0.1); 
+      break;
   }
+
   return forcaBase * (j.energia / 100);
 }
 
@@ -23,43 +32,59 @@ export function obterTitulares(jogadores: Jogador[]): Jogador[] {
   ];
 }
 
+const escolherAutorEmCampo = (titulares: Jogador[]): string => {
+  const candidatos = titulares.filter(j => j.posicao === 'ATA' || j.posicao === 'MEI' || j.posicao === 'DEF');
+  const listaSorteio = candidatos.length > 0 ? candidatos : titulares;
+
+  const somaFinalizacao = listaSorteio.reduce((acc, j) => {
+    if (j.posicao === 'DEF') return acc + (j.fin / 3);
+    return acc + j.fin;
+  }, 0);
+
+  let numeroSorteado = Math.random() * somaFinalizacao;
+
+  for (const jogador of listaSorteio) {
+    const pesoAtual = jogador.posicao === 'DEF' ? (jogador.fin / 3) : jogador.fin;
+    numeroSorteado -= pesoAtual;
+    if (numeroSorteado <= 0) return jogador.nome;
+  }
+
+  return listaSorteio[0].nome;
+};
+
 export function simularPartida(timeCasa: Time, timeFora: Time, rodadaAtual: number): PartidaSimulada {
   const tCasa = obterTitulares(timeCasa.jogadores);
   const tFora = obterTitulares(timeFora.jogadores);
 
-  const obterForcaSetor = (lista: Jogador[], pos: string) => {
+  const obterMediaAtributo = (lista: Jogador[], pos: string, attr: keyof Jogador) => {
     const filtrados = lista.filter(j => j.posicao === pos);
-    return filtrados.reduce((acc, j) => acc + calcularForcaJogador(j), 0) / filtrados.length;
+    if (filtrados.length === 0) return 50;
+    return filtrados.reduce((acc, j) => acc + Number(j[attr]), 0) / filtrados.length;
   };
 
-  const ataCasa = (obterForcaSetor(tCasa, 'ATA') + obterForcaSetor(tCasa, 'MEI')) / 2 + 1.5; 
-  const defCasa = (obterForcaSetor(tCasa, 'DEF') + obterForcaSetor(tCasa, 'GOL')) / 2 + 1.5;
-  
-  const ataFora = (obterForcaSetor(tFora, 'ATA') + obterForcaSetor(tFora, 'MEI')) / 2;
-  const defFora = (obterForcaSetor(tFora, 'DEF') + obterForcaSetor(tFora, 'GOL')) / 2;
+  const criacaoCasa = (obterMediaAtributo(tCasa, 'MEI', 'tec') * 0.7 + obterMediaAtributo(tCasa, 'MEI', 'fis') * 0.3) + 2.0; // +2 Mando de campo
+  const criacaoFora = obterMediaAtributo(tFora, 'MEI', 'tec') * 0.7 + obterMediaAtributo(tFora, 'MEI', 'fis') * 0.3;
+
+  const ataqueCasa = obterMediaAtributo(tCasa, 'ATA', 'fin');
+  const defesaFora = (obterMediaAtributo(tFora, 'DEF', 'def') * 0.6 + obterMediaAtributo(tFora, 'GOL', 'ref') * 0.4);
+
+  const ataqueFora = obterMediaAtributo(tFora, 'ATA', 'fin');
+  const defesaCasa = (obterMediaAtributo(tCasa, 'DEF', 'def') * 0.6 + obterMediaAtributo(tCasa, 'GOL', 'ref') * 0.4);
 
   const golsDetalhes: Gol[] = [];
   let golsCasa = 0;
   let golsFora = 0;
 
-  const escolherAutorEmCampo = (titulares: Jogador[]): string => {
-    const atacantesEMeias = titulares.filter(j => j.posicao === 'ATA' || j.posicao === 'MEI');
-    const sorteado = atacantesEMeias.length > 0 
-      ? atacantesEMeias[Math.floor(Math.random() * atacantesEMeias.length)]
-      : titulares[Math.floor(Math.random() * titulares.length)];
-    return sorteado.nome;
-  };
-
   for (let momento = 1; momento <= 6; momento++) {
     const minutoDoEvento = Math.floor(Math.random() * 14) + (momento - 1) * 15 + 1;
 
-    const chanceCasa = 0.16 + (ataCasa - defFora) / 150; 
+    const chanceCasa = 0.06 + ((criacaoCasa + ataqueCasa) - defesaFora) / 160;
     if (Math.random() < Math.max(0.02, Math.min(0.35, chanceCasa))) {
       golsCasa++;
       golsDetalhes.push({ autor: escolherAutorEmCampo(tCasa), minuto: minutoDoEvento, timeNome: timeCasa.nome });
     }
 
-    const chanceFora = 0.12 + (ataFora - defCasa) / 150;
+    const chanceFora = 0.04 + ((criacaoFora + ataqueFora) - defesaCasa) / 160;
     if (Math.random() < Math.max(0.01, Math.min(0.30, chanceFora))) {
       golsFora++;
       golsDetalhes.push({ autor: escolherAutorEmCampo(tFora), minuto: minutoDoEvento, timeNome: timeFora.nome });
