@@ -54,17 +54,17 @@ export default function App() {
         <div>
           <h1 className="text-2xl font-black text-green-400 tracking-wider">⚽ BRASFOOT ANALYTICS</h1>
           <p className="text-sm text-slate-400">
-            Fase do Torneio: {rodada > 7 ? (
+            Fase do Torneio: {rodada > 14 ? (
               <span className="text-red-400 font-bold">Encerrado</span>
             ) : (
-              <span>Rodada <span className="font-bold text-slate-200">{rodada} de 7</span></span>
+              <span>Rodada <span className="font-bold text-slate-200">{rodada} de 14</span></span>
             )}
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <button 
             onClick={dispararSimulacao} 
-            disabled={rodada > 7 || estaSimulando}
+            disabled={rodada > 14 || estaSimulando}
             className="flex-1 sm:flex-initial bg-green-500 hover:bg-green-600 text-slate-950 font-black px-5 py-2.5 rounded-lg transition-colors cursor-pointer text-sm disabled:opacity-30 shadow-lg shadow-green-500/10"
           >
             {estaSimulando ? `Simulando... (${minutoAtual}')` : 'Simular Rodada'}

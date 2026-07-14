@@ -42,19 +42,28 @@ export const useJogoStore = create<JogoStore>()(
 
       dispararSimulacao: () => {
         const { rodada, times, estaSimulando } = get();
-        if (rodada > 7 || estaSimulando || times.length === 0) return;
+
+        if (rodada > 14 || estaSimulando || times.length === 0) return;
 
         if (tictacInterval) clearInterval(tictacInterval);
 
         const numTimes = times.length;
-        const r = rodada - 1;
+        
+        const ehSegundoTurno = rodada > 7;
+        const r = ehSegundoTurno ? (rodada - 8) : (rodada - 1);
+
         const confrontos: [number, number][] = [];
 
         for (let i = 0; i < numTimes / 2; i++) {
-          const casa = (r + i) % (numTimes - 1);
-          let fora = (numTimes - 1 - i + r) % (numTimes - 1);
-          if (i === 0) fora = numTimes - 1;
-          confrontos.push([casa, fora]);
+          const casaBase = (r + i) % (numTimes - 1);
+          let foraBase = (numTimes - 1 - i + r) % (numTimes - 1);
+          if (i === 0) foraBase = numTimes - 1;
+
+          if (ehSegundoTurno) {
+            confrontos.push([foraBase, casaBase]);
+          } else {
+            confrontos.push([casaBase, foraBase]);
+          }
         }
 
         const resultados = confrontos.map(([idxCasa, idxFora]) => 
