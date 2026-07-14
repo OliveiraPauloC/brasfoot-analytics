@@ -47,7 +47,14 @@ export const useJogoStore = create<JogoStore>()(
 
         if (tictacInterval) clearInterval(tictacInterval);
 
-        const numTimes = times.length;
+        const timesComDescanso = JSON.parse(JSON.stringify(times)) as Time[];
+        timesComDescanso.forEach((t) => {
+          t.jogadores.forEach((j) => {
+            j.energia = Math.min(100, j.energia + 15);
+          });
+        });
+
+        const numTimes = timesComDescanso.length;
         
         const ehSegundoTurno = rodada > 7;
         const r = ehSegundoTurno ? (rodada - 8) : (rodada - 1);
@@ -67,10 +74,11 @@ export const useJogoStore = create<JogoStore>()(
         }
 
         const resultados = confrontos.map(([idxCasa, idxFora]) => 
-          simularPartida(times[idxCasa], times[idxFora], rodada)
+          simularPartida(timesComDescanso[idxCasa], timesComDescanso[idxFora], rodada)
         );
 
         set({
+          times: timesComDescanso,
           partidasEmAndamento: resultados,
           minutoAtual: 1,
           estaSimulando: true,
