@@ -4,15 +4,16 @@ import { type Time } from './types';
 import { simularPartida } from './motorSimulacao';
 
 const TIMES_INICIAIS: Time[] = [
-  { id: '1', nome: 'Flamengo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '1', nome: 'Arrascaeta', posicao: 'MEI', forca: 85 }, { id: '2', nome: 'Pedro', posicao: 'ATA', forca: 84 }] },
-  { id: '2', nome: 'Fluminense', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '3', nome: 'Ganso', posicao: 'MEI', forca: 79 }, { id: '4', nome: 'Arias', posicao: 'ATA', forca: 82 }] },
-  { id: '3', nome: 'Botafogo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '5', nome: 'Almada', posicao: 'MEI', forca: 84 }, { id: '6', nome: 'Luiz Henrique', posicao: 'ATA', forca: 83 }] },
-  { id: '4', nome: 'Vasco', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '7', nome: 'Payet', posicao: 'MEI', forca: 78 }, { id: '8', nome: 'Veitti', posicao: 'ATA', forca: 80 }] },
+  { id: '1', nome: 'Botafogo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '5', nome: 'Almada', posicao: 'MEI', forca: 84 }, { id: '6', nome: 'Luiz Henrique', posicao: 'ATA', forca: 83 }] },
+  { id: '2', nome: 'Corinthians', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '13', nome: 'Garro', posicao: 'MEI', forca: 80 }, { id: '14', nome: 'Depay', posicao: 'ATA', forca: 82 }] },
+  { id: '3', nome: 'Flamengo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '1', nome: 'Arrascaeta', posicao: 'MEI', forca: 85 }, { id: '2', nome: 'Pedro', posicao: 'ATA', forca: 84 }] },
+  { id: '4', nome: 'Fluminense', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '3', nome: 'Ganso', posicao: 'MEI', forca: 79 }, { id: '4', nome: 'Arias', posicao: 'ATA', forca: 82 }] },
   { id: '5', nome: 'Palmeiras', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '9', nome: 'Veiga', posicao: 'MEI', forca: 83 }, { id: '10', nome: 'Gómez', posicao: 'DEF', forca: 81 }] },
-  { id: '6', nome: 'São Paulo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '11', nome: 'Lucas Moura', posicao: 'MEI', forca: 82 }, { id: '12', nome: 'Calleri', posicao: 'ATA', forca: 80 }] },
-  { id: '7', nome: 'Corinthians', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '13', nome: 'Garro', posicao: 'MEI', forca: 80 }, { id: '14', nome: 'Depay', posicao: 'ATA', forca: 82 }] },
-  { id: '8', nome: 'Santos', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '15', nome: 'Giuliano', posicao: 'MEI', forca: 75 }, { id: '16', nome: 'Furch', posicao: 'ATA', forca: 74 }] },
+  { id: '6', nome: 'Santos', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '15', nome: 'Giuliano', posicao: 'MEI', forca: 75 }, { id: '16', nome: 'Furch', posicao: 'ATA', forca: 74 }] },
+  { id: '7', nome: 'São Paulo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '11', nome: 'Lucas Moura', posicao: 'MEI', forca: 82 }, { id: '12', nome: 'Calleri', posicao: 'ATA', forca: 80 }] },
+  { id: '8', nome: 'Vasco', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: '7', nome: 'Payet', posicao: 'MEI', forca: 78 }, { id: '8', nome: 'Vegetti', posicao: 'ATA', forca: 80 }] },
 ];
+
 
 interface JogoStore {
   times: Time[];
