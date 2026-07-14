@@ -4,7 +4,7 @@ Um simulador tático e analítico de campeonatos de futebol inspirado no clássi
 
 ---
 
-## 🚀 Desafios Técnicos & Engenharia de Software (Nível Sênior)
+## 🚀 Desafios Técnicos & Engenharia de Software
 
 Este repositório foi construído aplicando práticas avançadas de desenvolvimento para o ecossistema **React 19** e **TypeScript Estrito**, superando desafios complexos de sincronismo e performance:
 
