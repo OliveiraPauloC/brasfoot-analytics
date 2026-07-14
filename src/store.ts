@@ -11,7 +11,11 @@ interface JogoStore {
   minutoAtual: number;
   estaSimulando: boolean;
   rodadaSendoSimulada: number;
+  timeUsuarioId: string | null;
+  nomeTecnico: string;
+  
   carregarDadosIniciais: () => Promise<void>;
+  escolherClube: (timeId: string, nome: string) => void;
   dispararSimulacao: () => void;
   resetarCampeonato: () => void;
 }
@@ -28,6 +32,8 @@ export const useJogoStore = create<JogoStore>()(
       minutoAtual: 0,
       estaSimulando: false,
       rodadaSendoSimulada: 1,
+      timeUsuarioId: null,
+      nomeTecnico: '',
 
       carregarDadosIniciais: async () => {
         if (get().times.length > 0) return;
@@ -40,9 +46,18 @@ export const useJogoStore = create<JogoStore>()(
         }
       },
 
+      escolherClube: (timeId, nome) => set({
+        timeUsuarioId: timeId,
+        nomeTecnico: nome,
+        rodada: 1,
+        historicoRodadas: [],
+        partidasEmAndamento: [],
+        minutoAtual: 0,
+        estaSimulando: false
+      }),
+
       dispararSimulacao: () => {
         const { rodada, times, estaSimulando } = get();
-
         if (rodada > 14 || estaSimulando || times.length === 0) return;
 
         if (tictacInterval) clearInterval(tictacInterval);
@@ -55,7 +70,6 @@ export const useJogoStore = create<JogoStore>()(
         });
 
         const numTimes = timesComDescanso.length;
-        
         const ehSegundoTurno = rodada > 7;
         const r = ehSegundoTurno ? (rodada - 8) : (rodada - 1);
 
@@ -156,7 +170,7 @@ export const useJogoStore = create<JogoStore>()(
 
       resetarCampeonato: async () => {
         if (tictacInterval) clearInterval(tictacInterval);
-        set({ times: [], rodada: 1, historicoRodadas: [], partidasEmAndamento: [], minutoAtual: 0, estaSimulando: false });
+        set({ times: [], rodada: 1, historicoRodadas: [], partidasEmAndamento: [], minutoAtual: 0, estaSimulando: false, timeUsuarioId: null, nomeTecnico: '' });
         try {
           const resposta = await fetch('/dadosIniciais.json');
           const dados = await resposta.json();
@@ -171,7 +185,9 @@ export const useJogoStore = create<JogoStore>()(
       partialize: (state) => ({
         times: state.times,
         rodada: state.rodada,
-        historicoRodadas: state.historicoRodadas
+        historicoRodadas: state.historicoRodadas,
+        timeUsuarioId: state.timeUsuarioId,
+        nomeTecnico: state.nomeTecnico
       })
     }
   )
