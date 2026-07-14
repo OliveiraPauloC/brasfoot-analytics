@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useJogoStore } from './store';
 
 export default function App() {
@@ -8,10 +9,15 @@ export default function App() {
     partidasEmAndamento, 
     minutoAtual, 
     estaSimulando, 
-    rodadaSendoSimulada, 
+    rodadaSendoSimulada,
+    carregarDadosIniciais, 
     dispararSimulacao, 
     resetarCampeonato 
   } = useJogoStore();
+
+  useEffect(() => {
+    carregarDadosIniciais();
+  }, [carregarDadosIniciais]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-6 flex flex-col font-sans">
