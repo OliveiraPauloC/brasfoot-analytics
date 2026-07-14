@@ -66,9 +66,21 @@ const escolherAutorEmCampo = (titulares: Jogador[]): string => {
   return listaSorteio[0].nome;
 };
 
-export function simularPartida(timeCasa: Time, timeFora: Time, rodadaAtual: number): PartidaSimulada {
-  const tCasa = obterTitulares(timeCasa.jogadores);
-  const tFora = obterTitulares(timeFora.jogadores);
+export function simularPartida(
+  timeCasa: Time, 
+  timeFora: Time, 
+  rodadaAtual: number, 
+  timeUsuarioId: string | null,
+  titularesManuaisIds: string[]
+): PartidaSimulada {
+
+  const tCasa = timeCasa.id === timeUsuarioId && titularesManuaisIds.length === 11
+    ? timeCasa.jogadores.filter(j => titularesManuaisIds.includes(j.id))
+    : obterTitulares(timeCasa.jogadores);
+
+  const tFora = timeFora.id === timeUsuarioId && titularesManuaisIds.length === 11
+    ? timeFora.jogadores.filter(j => titularesManuaisIds.includes(j.id))
+    : obterTitulares(timeFora.jogadores);
 
   const obterMediaAtributo = (lista: Jogador[], pos: string, attr: keyof Jogador) => {
     const filtrados = lista.filter(j => j.posicao === pos);

@@ -113,7 +113,7 @@ export const useJogoStore = create<JogoStore>()(
         }
 
         const resultados = confrontos.map(([idxCasa, idxFora]) => 
-          simularPartida(timesComDescanso[idxCasa], timesComDescanso[idxFora], rodada)
+          simularPartida(timesComDescanso[idxCasa], timesComDescanso[idxFora], rodada, timeUsuarioId, titularesManuaisIds)
         );
 
         set({

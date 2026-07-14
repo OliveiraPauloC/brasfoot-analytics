@@ -14,8 +14,10 @@ export default function App() {
     rodadaSendoSimulada, 
     timeUsuarioId,
     nomeTecnico,
+    titularesManuaisIds,
     carregarDadosIniciais, 
     escolherClube,
+    alternarEscalacao,
     dispararSimulacao, 
     resetarCampeonato 
   } = useJogoStore();
@@ -23,13 +25,16 @@ export default function App() {
   const [abaAtiva, setAbaAtiva] = useState<'classificacao' | 'artilharia' | 'elenco'>('classificacao');
   const [clubeClicadoId, setClubeClicadoId] = useState<string | null>(null);
 
+  // Estados locais para controlar o formulário de login inicial
   const [inputNome, setInputNome] = useState<string>('');
   const [timeSorteadoId, setTimeSorteadoId] = useState<string>('1');
 
+  // Carrega os dados iniciais do JSON assim que o app é montado
   useEffect(() => {
     carregarDadosIniciais();
   }, [carregarDadosIniciais]);
 
+  // Handler para submeter a escolha do treinador
   const iniciarCarreira = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputNome.trim()) {
@@ -39,6 +44,7 @@ export default function App() {
     escolherClube(timeSorteadoId, inputNome);
   };
 
+  // INTERCEPTADOR: Se o usuário ainda não escolheu um clube, renderiza a Tela de Seleção Inicial
   if (!timeUsuarioId) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center p-4 font-sans">
@@ -83,7 +89,7 @@ export default function App() {
       </div>
     );
   }
-
+  // Agrega e ordena a artilharia acumulada
   const obterArtilharia = () => {
     const contagemGols: { [nomeJogador: string]: { gols: number; time: string } } = {};
     historicoRodadas.forEach((r) => {
@@ -104,17 +110,27 @@ export default function App() {
 
   const listaArtilheiros = obterArtilharia();
 
+  // REGRA SÊNIOR: Calcula o ID ativo em tempo de renderização, eliminando re-renders
   const idAtivoEfetivo = clubeClicadoId || timeUsuarioId || '1';
-
-  const timeVisualizado = times.find(t => t.id === idAtivoEfetivo) || times[0];
-  const titulares = timeVisualizado ? obterTitulares(timeVisualizado.jogadores) : [];
-  const titularesIds = titulares.map(t => t.id);
-  const reservas = timeVisualizado ? timeVisualizado.jogadores.filter(j => !titularesIds.includes(j.id)) : [];
-  
+  const timeVisualizado = times.find(t => t.id === idAtivoEfetivo) || undefined;
   const meuClubeNome = times.find(t => t.id === timeUsuarioId)?.nome || '';
+
+  // Determina se o time que o usuário está olhando na aba é o dele de fato
+  const ehTimeDoUsuarioVisualizado = timeVisualizado?.id === timeUsuarioId;
+
+  // Filtra titulares (se for o do usuário lê a escolha dele, se for IA roda a escalação automática)
+  const titulares = timeVisualizado 
+    ? (ehTimeDoUsuarioVisualizado && titularesManuaisIds.length > 0
+        ? timeVisualizado.jogadores.filter(j => titularesManuaisIds.includes(j.id))
+        : obterTitulares(timeVisualizado.jogadores))
+    : [];
+
+  const titularesIdsExibicao = titulares.map(t => t.id);
+  const reservas = timeVisualizado ? timeVisualizado.jogadores.filter(j => !titularesIdsExibicao.includes(j.id)) : [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-6 flex flex-col font-sans selection:bg-green-500 selection:text-slate-950">
+      {/* Cabeçalho de Controle Expandido com Perfil */}
       <header className="max-w-5xl w-full mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4 mb-6">
         <div>
           <h1 className="text-2xl font-black text-green-400 tracking-wider">⚽ BRASFOOT ANALYTICS</h1>
@@ -183,7 +199,6 @@ export default function App() {
           </div>
         </div>
       )}
-
       <main className="max-w-5xl w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-start">
         <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-2xl flex flex-col min-h-[460px]">
           
@@ -295,6 +310,7 @@ export default function App() {
                     <table className="w-full text-left text-xs whitespace-nowrap font-mono">
                       <thead>
                         <tr className="text-slate-500 border-b border-slate-800 text-[10px] uppercase bg-slate-950/80">
+                          {ehTimeDoUsuarioVisualizado && <th className="p-2.5 w-10 text-center font-semibold">Tático</th>}
                           <th className="p-2.5 font-semibold text-left font-sans">Nome</th>
                           <th className="p-2.5 text-center font-semibold w-12">Pos</th>
                           <th className="p-2.5 text-center font-semibold w-12">Força</th>
@@ -304,25 +320,39 @@ export default function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/40 text-slate-300">
-                        {(lista as Jogador[]).map((j) => (
-                          <tr key={j.id} className="hover:bg-slate-900/30 transition-colors">
-                            <td className="p-2.5 font-sans font-medium text-slate-200 text-sm truncate max-w-[140px]">{j.nome}</td>
-                            <td className="p-2.5 text-center font-bold text-slate-400">
-                              <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px]">{j.posicao}</span>
-                            </td>
-                            <td className="p-2.5 text-center text-green-400 font-bold text-sm">{Math.floor(calcularForcaJogador(j))}</td>
-                            <td className="p-2.5 text-center">{j.idade}a</td>
-                            <td className="p-2.5 text-center text-slate-400">R$ {j.salario.toLocaleString('pt-BR')}</td>
-                            <td className="p-2.5 align-middle">
-                              <div className="flex items-center gap-2">
-                                <div className="w-14 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
-                                  <div className={`h-full transition-all ${j.energia > 70 ? 'bg-green-500' : j.energia > 40 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${j.energia}%` }}></div>
+                        {(lista as Jogador[]).map((j) => {
+                          const ehTitularNaLista = titularesManuaisIds.includes(j.id);
+                          return (
+                            <tr key={j.id} className="hover:bg-slate-900/30 transition-colors">
+                              {ehTimeDoUsuarioVisualizado && (
+                                <td className="p-2.5 text-center">
+                                  <button 
+                                    onClick={() => alternarEscalacao(j.id)}
+                                    disabled={estaSimulando}
+                                    className={`text-[10px] font-black px-2 py-0.5 rounded cursor-pointer transition-colors ${ehTitularNaLista ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
+                                  >
+                                    {ehTitularNaLista ? 'Barrar' : 'Escalar'}
+                                  </button>
+                                </td>
+                              )}
+                              <td className="p-2.5 font-sans font-medium text-slate-200 text-sm truncate max-w-[140px]">{j.nome}</td>
+                              <td className="p-2.5 text-center font-bold text-slate-400">
+                                <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px]">{j.posicao}</span>
+                              </td>
+                              <td className="p-2.5 text-center text-green-400 font-bold text-sm">{Math.floor(calcularForcaJogador(j))}</td>
+                              <td className="p-2.5 text-center">{j.idade}a</td>
+                              <td className="p-2.5 text-center text-slate-400">R$ {j.salario.toLocaleString('pt-BR')}</td>
+                              <td className="p-2.5 align-middle">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-14 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                                    <div className={`h-full transition-all ${j.energia > 70 ? 'bg-green-500' : j.energia > 40 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${j.energia}%` }}></div>
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 font-bold w-6">{j.energia}%</span>
                                 </div>
-                                <span className="text-[10px] text-slate-400 font-bold w-6">{j.energia}%</span>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
