@@ -218,57 +218,59 @@ export default function App() {
               </table>
             </div>
           )}
-        </div>
+        
 
-        <div className="lg:col-span-2">
-          {abaAtiva === 'elenco' && timeVisualizado && (
-            <div className="space-y-6 max-h-[600px] overflow-y-auto pr-1">
-              {[
-                ['Titulares em Campo', titulares, 'text-green-400'],
-                ['Banco de Reservas', reservas, 'text-slate-400']
-              ].map(([titulo, lista, cor]) => (
-                <div key={titulo as string} className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
-                  <h4 className={`text-xs font-bold uppercase tracking-wider ${cor} mb-3 font-mono`}>{titulo as string}</h4>
-                  <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/40">
-                    <table className="w-full text-left text-xs whitespace-nowrap font-mono">
-                      <thead>
-                        <tr className="text-slate-500 border-b border-slate-800 text-[10px] uppercase bg-slate-950/80">
-                          <th className="p-2.5 font-semibold text-left font-sans">Nome</th>
-                          <th className="p-2.5 text-center font-semibold w-12">Pos</th>
-                          <th className="p-2.5 text-center font-semibold w-12">Força</th>
-                          <th className="p-2.5 text-center font-semibold w-12">Idade</th>
-                          <th className="p-2.5 text-center font-semibold w-24">Salário</th>
-                          <th className="p-2.5 text-left font-semibold w-24">Energia</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/40 text-slate-300">
-                        {(lista as Jogador[]).map((j) => (
-                          <tr key={j.id} className="hover:bg-slate-900/30 transition-colors">
-                            <td className="p-2.5 font-sans font-medium text-slate-200 text-sm truncate max-w-[140px]">{j.nome}</td>
-                            <td className="p-2.5 text-center font-bold text-slate-400">
-                              <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px]">{j.posicao}</span>
-                            </td>
-                            <td className="p-2.5 text-center text-green-400 font-bold text-sm">{Math.floor(calcularForcaJogador(j))}</td>
-                            <td className="p-2.5 text-center">{j.idade}a</td>
-                            <td className="p-2.5 text-center text-slate-400">R$ {j.salario.toLocaleString('pt-BR')}</td>
-                            <td className="p-2.5 align-middle">
-                              <div className="flex items-center gap-2">
-                                <div className="w-14 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
-                                  <div className={`h-full transition-all ${j.energia > 70 ? 'bg-green-500' : j.energia > 40 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${j.energia}%` }}></div>
-                                </div>
-                                <span className="text-[10px] text-slate-400 font-bold w-6">{j.energia}%</span>
+        
+        {abaAtiva === 'elenco' && timeVisualizado && (
+          <div className="space-y-6 max-h-[600px] overflow-y-auto pr-1">
+            {[
+              ['Titulares em Campo', titulares, 'text-green-400'],
+              ['Banco de Reservas', reservas, 'text-slate-400']
+            ].map(([titulo, lista, cor]) => (
+              <div key={titulo as string} className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+                <h4 className={`text-xs font-bold uppercase tracking-wider ${cor} mb-3 font-mono`}>{titulo as string}</h4>
+                <div className="overflow-x-auto border border-slate-800/60 rounded-xl bg-slate-950/40">
+                  <table className="w-full text-left text-xs whitespace-nowrap font-mono">
+                    <thead>
+                      <tr className="text-slate-500 border-b border-slate-800 text-[10px] uppercase bg-slate-950/80">
+                        <th className="p-2.5 font-semibold text-left font-sans">Nome</th>
+                        <th className="p-2.5 text-center font-semibold w-12">Pos</th>
+                        <th className="p-2.5 text-center font-semibold w-12">Força</th>
+                        <th className="p-2.5 text-center font-semibold w-12">Idade</th>
+                        <th className="p-2.5 text-center font-semibold w-24">Salário</th>
+                        <th className="p-2.5 text-left font-semibold w-24">Energia</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/40 text-slate-300">
+                      {(lista as Jogador[]).map((j) => (
+                        <tr key={j.id} className="hover:bg-slate-900/30 transition-colors">
+                          <td className="p-2.5 font-sans font-medium text-slate-200 text-sm truncate max-w-[140px]">{j.nome}</td>
+                          <td className="p-2.5 text-center font-bold text-slate-400">
+                            <span className="bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 text-[10px]">{j.posicao}</span>
+                          </td>
+                          <td className="p-2.5 text-center text-green-400 font-bold text-sm">{Math.floor(calcularForcaJogador(j))}</td>
+                          <td className="p-2.5 text-center">{j.idade}a</td>
+                          <td className="p-2.5 text-center text-slate-400">R$ {j.salario.toLocaleString('pt-BR')}</td>
+                          <td className="p-2.5 align-middle">
+                            <div className="flex items-center gap-2">
+                              <div className="w-14 bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                                <div className={`h-full transition-all ${j.energia > 70 ? 'bg-green-500' : j.energia > 40 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${j.energia}%` }}></div>
                               </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                              <span className="text-[10px] text-slate-400 font-bold w-6">{j.energia}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
+        )}
+
         </div>
+        
 
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col h-[400px] shadow-xl">
           <h2 className="text-lg font-bold mb-4 text-slate-200">Histórico de Placares</h2>
