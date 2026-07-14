@@ -1,17 +1,52 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { type Time, type RodadaSimulada, type PartidaSimulada } from './types';
+import { type Time, type RodadaSimulada, type PartidaSimulada, type Jogador } from './types';
 import { simularPartida } from './motorSimulacao';
 
+// Função utilitária sênior para gerar elencos de 22 jogadores dinamicamente com IA/Lógica de Negócio
+const gerarElencoFicticio = (prefixoId: string, forcaMedia: number): Jogador[] => {
+  const posicoes: ('GOL' | 'DEF' | 'MEI' | 'ATA')[] = [
+    'GOL', 'GOL',
+    'DEF', 'DEF', 'DEF', 'DEF', 'DEF', 'DEF',
+    'MEI', 'MEI', 'MEI', 'MEI', 'MEI', 'MEI', 'MEI', 'MEI',
+    'ATA', 'ATA', 'ATA', 'ATA', 'ATA', 'ATA'
+  ];
+
+  return posicoes.map((pos, index) => {
+    const variacaoForca = Math.floor(Math.random() * 11) - 5; 
+    const idade = Math.floor(Math.random() * 18) + 17;
+    const forcaFinal = Math.clamp(forcaMedia + variacaoForca, 40, 99);
+    
+    const salario = Math.floor((forcaFinal * forcaFinal) * 35);
+
+    return {
+      id: `${prefixoId}-j${index}`,
+      nome: `${pos} ${prefixoId.toUpperCase()} #${index + 1}`,
+      posicao: pos,
+      forca: forcaFinal,
+      idade,
+      energia: 100,
+      salario
+    };
+  });
+};
+
+declare global {
+  interface Math {
+    clamp(value: number, min: number, max: number): number;
+  }
+}
+Math.clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+
 const TIMES_INICIAIS: Time[] = [
-  { id: '1', nome: 'Flamengo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'f1', nome: 'Arrascaeta', posicao: 'MEI', forca: 85 }, { id: 'f2', nome: 'Pedro', posicao: 'ATA', forca: 84 }] },
-  { id: '2', nome: 'Fluminense', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'fl1', nome: 'Ganso', posicao: 'MEI', forca: 79 }, { id: 'fl2', nome: 'Arias', posicao: 'ATA', forca: 82 }] },
-  { id: '3', nome: 'Botafogo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'b1', nome: 'Almada', posicao: 'MEI', forca: 84 }, { id: 'b2', nome: 'Luiz Henrique', posicao: 'ATA', forca: 83 }] },
-  { id: '4', nome: 'Vasco', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'v1', nome: 'Payet', posicao: 'MEI', forca: 78 }, { id: 'v2', nome: 'Veitti', posicao: 'ATA', forca: 80 }] },
-  { id: '5', nome: 'Palmeiras', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'p1', nome: 'Veiga', posicao: 'MEI', forca: 83 }, { id: 'p2', nome: 'Gómez', posicao: 'DEF', forca: 81 }] },
-  { id: '6', nome: 'São Paulo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 's1', nome: 'Lucas Moura', posicao: 'MEI', forca: 82 }, { id: 's2', nome: 'Calleri', posicao: 'ATA', forca: 80 }] },
-  { id: '7', nome: 'Corinthians', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'c1', nome: 'Garro', posicao: 'MEI', forca: 80 }, { id: 'c2', nome: 'Depay', posicao: 'ATA', forca: 82 }] },
-  { id: '8', nome: 'Santos', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: [{ id: 'san1', nome: 'Giuliano', posicao: 'MEI', forca: 75 }, { id: 'san2', nome: 'Furch', posicao: 'ATA', forca: 74 }] },
+  { id: '1', nome: 'Flamengo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('fla', 83) },
+  { id: '2', nome: 'Fluminense', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('flu', 78) },
+  { id: '3', nome: 'Botafogo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('bot', 82) },
+  { id: '4', nome: 'Vasco', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('vas', 77) },
+  { id: '5', nome: 'Palmeiras', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('pal', 82) },
+  { id: '6', nome: 'São Paulo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('sao', 79) },
+  { id: '7', nome: 'Corinthians', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('cor', 79) },
+  { id: '8', nome: 'Santos', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('san', 74) },
 ];
 
 interface JogoStore {
@@ -89,6 +124,9 @@ export const useJogoStore = create<JogoStore>()(
 
               tCasa.golsPro += res.golsCasa; tCasa.golsContra += res.golsFora;
               tFora.golsPro += res.golsFora; tFora.golsContra += res.golsCasa;
+
+              tCasa.jogadores.forEach(j => j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 5)));
+              tFora.jogadores.forEach(j => j.energia = Math.max(10, j.energia - (Math.floor(Math.random() * 8) + 5)));
 
               if (res.golsCasa > res.golsFora) {
                 tCasa.pontos += 3; tCasa.vitorias += 1; tFora.derrotas += 1;
