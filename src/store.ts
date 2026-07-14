@@ -1,52 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { type Time, type RodadaSimulada, type PartidaSimulada, type Jogador } from './types';
+import { type Time, type RodadaSimulada, type PartidaSimulada } from './types';
 import { simularPartida, obterTitulares } from './motorSimulacao';
-
-const gerarElencoFicticio = (prefixoId: string, forcaMedia: number): Jogador[] => {
-  const posicoes: ('GOL' | 'DEF' | 'MEI' | 'ATA')[] = [
-    'GOL', 'GOL',
-    'DEF', 'DEF', 'DEF', 'DEF', 'DEF', 'DEF',
-    'MEI', 'MEI', 'MEI', 'MEI', 'MEI', 'MEI', 'MEI', 'MEI',
-    'ATA', 'ATA', 'ATA', 'ATA', 'ATA', 'ATA'
-  ];
-
-  return posicoes.map((pos, index) => {
-    const variacaoForca = Math.floor(Math.random() * 11) - 5; 
-    const idade = Math.floor(Math.random() * 18) + 17;
-    const forcaFinal = Math.clamp(forcaMedia + variacaoForca, 40, 99);
-    
-    const salario = Math.floor((forcaFinal * forcaFinal) * 35);
-
-    return {
-      id: `${prefixoId}-j${index}`,
-      nome: `${pos} ${prefixoId.toUpperCase()} #${index + 1}`,
-      posicao: pos,
-      forca: forcaFinal,
-      idade,
-      energia: 100,
-      salario
-    };
-  });
-};
-
-declare global {
-  interface Math {
-    clamp(value: number, min: number, max: number): number;
-  }
-}
-Math.clamp = (value, min, max) => Math.max(min, Math.min(value, max));
-
-const TIMES_INICIAIS: Time[] = [
-  { id: '1', nome: 'Flamengo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('fla', 83) },
-  { id: '2', nome: 'Fluminense', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('flu', 78) },
-  { id: '3', nome: 'Botafogo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('bot', 82) },
-  { id: '4', nome: 'Vasco', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('vas', 77) },
-  { id: '5', nome: 'Palmeiras', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('pal', 82) },
-  { id: '6', nome: 'São Paulo', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('sao', 79) },
-  { id: '7', nome: 'Corinthians', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('cor', 79) },
-  { id: '8', nome: 'Santos', pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0, jogadores: gerarElencoFicticio('san', 74) },
-];
 
 interface JogoStore {
   times: Time[];
@@ -56,6 +11,7 @@ interface JogoStore {
   minutoAtual: number;
   estaSimulando: boolean;
   rodadaSendoSimulada: number;
+  carregarDadosIniciais: () => Promise<void>;
   dispararSimulacao: () => void;
   resetarCampeonato: () => void;
 }
@@ -65,7 +21,7 @@ let tictacInterval: ReturnType<typeof setInterval> | null = null;
 export const useJogoStore = create<JogoStore>()(
   persist(
     (set, get) => ({
-      times: TIMES_INICIAIS,
+      times: [],
       rodada: 1,
       historicoRodadas: [],
       partidasEmAndamento: [],
@@ -73,9 +29,20 @@ export const useJogoStore = create<JogoStore>()(
       estaSimulando: false,
       rodadaSendoSimulada: 1,
 
+      carregarDadosIniciais: async () => {
+        if (get().times.length > 0) return;
+        try {
+          const resposta = await fetch('/dadosIniciais.json');
+          const dados: Time[] = await resposta.json();
+          set({ times: dados });
+        } catch (erro) {
+          console.error("Falha ao consumir o JSON de elencos reais:", erro);
+        }
+      },
+
       dispararSimulacao: () => {
         const { rodada, times, estaSimulando } = get();
-        if (rodada > 7 || estaSimulando) return;
+        if (rodada > 7 || estaSimulando || times.length === 0) return;
 
         if (tictacInterval) clearInterval(tictacInterval);
 
@@ -176,9 +143,16 @@ export const useJogoStore = create<JogoStore>()(
         }, 150);
       },
 
-      resetarCampeonato: () => {
+      resetarCampeonato: async () => {
         if (tictacInterval) clearInterval(tictacInterval);
-        set({ times: TIMES_INICIAIS, rodada: 1, historicoRodadas: [], partidasEmAndamento: [], minutoAtual: 0, estaSimulando: false });
+        set({ times: [], rodada: 1, historicoRodadas: [], partidasEmAndamento: [], minutoAtual: 0, estaSimulando: false });
+        try {
+          const resposta = await fetch('/dadosIniciais.json');
+          const dados = await resposta.json();
+          set({ times: dados });
+        } catch (erro) {
+          console.error(erro);
+        }
       }
     }),
     { 
