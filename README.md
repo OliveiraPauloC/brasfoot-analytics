@@ -1,9 +1,5 @@
 # ⚽ Brasfoot Analytics
 
-[![Vercel Production](https://shields.io)](https://vercel.com)
-[![TypeScript](https://shields.io)](https://typescriptlang.org)
-[![Zustand](https://shields.io)](https://pmnd.rs)
-
 Um simulador tático e analítico de campeonatos de futebol inspirado no clássico jogo de gerenciamento esportivo *Brasfoot*. Desenvolvido com uma arquitetura moderna **Offline-First**, o ecossistema processa em lote dados densos de múltiplos elencos reais e simula partidas minuto a minuto em tempo real de forma totalmente isolada das renderizações do frontend.
 
 ---
