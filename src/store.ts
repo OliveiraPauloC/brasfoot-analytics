@@ -72,13 +72,29 @@ export const useJogoStore = create<JogoStore>()(
         
         if (jaEhTitular) {
           return { titularesManuaisIds: state.titularesManuaisIds.filter(id => id !== jogadorId) };
-        } else {
-          if (state.titularesManuaisIds.length >= 11) {
-            alert("Você já tem 11 titulares escalados! Tire alguém do time primeiro.");
+        }
+
+        const meuTime = state.times.find(t => t.id === state.timeUsuarioId);
+        const jogador = meuTime?.jogadores.find(j => j.id === jogadorId);
+        if (!jogador) return {};
+
+        const atuaisTitulares = meuTime?.jogadores?.filter(j => state.titularesManuaisIds.includes(j.id)) || [];
+        
+        if (jogador.posicao === 'GOL') {
+          const temGoleiro = atuaisTitulares.some(j => j.posicao === 'GOL');
+          if (temGoleiro) {
+            alert("Você já tem um Goleiro em campo! Barra o goleiro atual primeiro antes de escalar o reserva.");
             return {};
           }
-          return { titularesManuaisIds: [...state.titularesManuaisIds, jogadorId] };
+        } else {
+          const jogadoresLinha = atuaisTitulares.filter(j => j.posicao !== 'GOL');
+          if (jogadoresLinha.length >= 10) {
+            alert("Você já escalou os 10 jogadores de linha permitidos!");
+            return {};
+          }
         }
+
+        return { titularesManuaisIds: [...state.titularesManuaisIds, jogadorId] };
       }),
 
       dispararSimulacao: () => {
