@@ -53,13 +53,13 @@ export function simularPartida(timeCasa: Time, timeFora: Time, rodadaAtual: numb
   for (let momento = 1; momento <= 6; momento++) {
     const minutoDoEvento = Math.floor(Math.random() * 14) + (momento - 1) * 15 + 1;
 
-    const chanceCasa = 0.08 + (ataCasa - defFora) / 150; 
+    const chanceCasa = 0.16 + (ataCasa - defFora) / 150; 
     if (Math.random() < Math.max(0.02, Math.min(0.35, chanceCasa))) {
       golsCasa++;
       golsDetalhes.push({ autor: escolherAutorEmCampo(tCasa), minuto: minutoDoEvento, timeNome: timeCasa.nome });
     }
 
-    const chanceFora = 0.06 + (ataFora - defCasa) / 150;
+    const chanceFora = 0.12 + (ataFora - defCasa) / 150;
     if (Math.random() < Math.max(0.01, Math.min(0.30, chanceFora))) {
       golsFora++;
       golsDetalhes.push({ autor: escolherAutorEmCampo(tFora), minuto: minutoDoEvento, timeNome: timeFora.nome });
